@@ -4,17 +4,17 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  check_pr_title:
+  your-job:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@v2
+      - name: Checkout the repository
+        uses: actions/checkout@v3
 
-      - name: Get the PR number from GitHub context
-        id: pr_info
+      - name: Get PR details and validate ticket ID
         run: |
           PR_NUMBER="16"
+          
+          # Get the PR title using GitHub CLI
           PR_TITLE=$(gh pr view "$PR_NUMBER" --json title -q ".title")
           echo "PR title from GitHub: '$PR_TITLE'"
           
@@ -46,3 +46,5 @@ jobs:
             echo "Mismatch: Branch ticket ID ($BRANCH_TICKET) does not match PR ticket ID ($PR_TICKET)."
             exit 1  # Fail the action
           fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
