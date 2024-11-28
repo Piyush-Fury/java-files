@@ -1,5 +1,5 @@
 // //****************** QUESTION1 ***************/
-
+//rules
 //sdas
 // // abstract class Pen{
 // //     abstract void write();
