@@ -4,8 +4,7 @@
 // // abstract class Pen{
 // //     abstract void write();
 // //     abstract void refill();
-// // }
-
+// // }asdsad
 // // class Fountainpen extends Pen{
 // //     void write(){
 // //         System.out.println("Write");
