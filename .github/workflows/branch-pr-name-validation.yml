@@ -1,3 +1,10 @@
+name: Validate Branch and PR Naming
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    types: [opened, synchronize, reopened]
 jobs:
   check-naming-convention:
     runs-on: ubuntu-latest
