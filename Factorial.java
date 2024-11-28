@@ -1,4 +1,5 @@
 // import java.util.Scanner;
+// edit hgya h
 
 // class Factorial1{
 //     public void fact(int n)
