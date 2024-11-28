@@ -70,7 +70,7 @@ class SmartTelephone extends Telephone{
     // }
 }
 
- 
+// this is an check 
 public class Ab1 {
     public static void main(String[] args) {
         Telephone t1 = new SmartTelephone();
