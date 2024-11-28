@@ -1,5 +1,5 @@
 import java.util.Scanner;
-
+//asas
 public class Except1 {
     public static void main(String[] args) {
         int [] marks = new int[3];
