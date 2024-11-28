@@ -13,14 +13,18 @@ jobs:
         uses: actions/checkout@v3
         
       # Check branch name for JIRA ticket
-      - name: Check branch name for JIRA ticket
+      - name: Get Branch Name and Check JIRA ticket
         run: |
           # Get the branch name from the PR
           BRANCH_NAME="${{ github.head_ref }}"
-          echo "Branch name: $BRANCH_NAME"
+          echo "Branch name: '$BRANCH_NAME'"
+          
+          # Trim leading and trailing spaces from the branch name
+          BRANCH_NAME=$(echo "$BRANCH_NAME" | xargs)
+          echo "Trimmed Branch name: '$BRANCH_NAME'"
           
           # Exclude main branches from validation
-          if [[ "$BRANCH_NAME" == "main" ]]; then
+          if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "develop" || "$BRANCH_NAME" == "master" ]]; then
             echo "Skipping branch name validation for $BRANCH_NAME."
             exit 0
           fi
@@ -32,14 +36,18 @@ jobs:
           fi
 
       # Check PR title for JIRA ticket
-      - name: Check PR title for JIRA ticket
+      - name: Get PR title and validate ticket ID
         run: |
           # Get the PR number from GitHub context
           PR_NUMBER="${{ github.event.pull_request.number }}"
 
           # Get the PR title using GitHub CLI
           PR_TITLE=$(gh pr view "$PR_NUMBER" --json title -q ".title")
-          echo "PR title: $PR_TITLE"
+          echo "PR title: '$PR_TITLE'"
+
+          # Trim leading and trailing spaces from the PR title
+          PR_TITLE=$(echo "$PR_TITLE" | xargs)
+          echo "Trimmed PR title: '$PR_TITLE'"
 
           # Validate PR title includes a JIRA ticket ID (e.g., SH-234)
           if [[ ! "$PR_TITLE" =~ ^[A-Z]+-[0-9]+ ]]; then
@@ -47,14 +55,14 @@ jobs:
             exit 1  # Fail the action
           fi
 
-          # Ensure PR title's ticket ID matches the branch name's ticket ID
-          BRANCH_TICKET=$(echo "$BRANCH_NAME" | grep -oE '^[A-Z]+-[0-9]+')
-          PR_TICKET=$(echo "$PR_TITLE" | grep -oE '^[A-Z]+-[0-9]+')
+          # Normalize both branch and PR ticket IDs to lowercase
+          BRANCH_TICKET=$(echo "$BRANCH_NAME" | grep -oE '^[A-Z]+-[0-9]+' | tr '[:upper:]' '[:lower:]')
+          PR_TICKET=$(echo "$PR_TITLE" | grep -oE '^[A-Z]+-[0-9]+' | tr '[:upper:]' '[:lower:]')
 
           # Debugging output for branch and PR ticket IDs
-          echo "Branch name: $BRANCH_NAME"
-          echo "Extracted branch ticket ID: $BRANCH_TICKET"
-          echo "Extracted PR ticket ID: $PR_TICKET"
+          echo "Branch name: '$BRANCH_NAME'"
+          echo "Extracted branch ticket ID: '$BRANCH_TICKET'"
+          echo "Extracted PR ticket ID: '$PR_TICKET'"
 
           if [[ "$BRANCH_TICKET" != "$PR_TICKET" ]]; then
             echo "Mismatch: Branch ticket ID ($BRANCH_TICKET) does not match PR ticket ID ($PR_TICKET)."
