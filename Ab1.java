@@ -70,7 +70,7 @@ class SmartTelephone extends Telephone{
     // }
 }
 
-//this is the change and now i have changed the pr name
+//this is the change and now i have changed the pr name HOLA AMIGO
 public class Ab1 {
     public static void main(String[] args) {
         Telephone t1 = new SmartTelephone();
