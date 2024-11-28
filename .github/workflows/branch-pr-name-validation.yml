@@ -1,0 +1,30 @@
+name: Validate Branch and PR Naming
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check branch name for JIRA ticket
+        run: |
+          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+          if [[ ! "$BRANCH_NAME" =~ ^(feature|bugfix|hotfix)\/[A-Z]{2,}-[0-9]+ ]]; then
+            echo "Branch name '$BRANCH_NAME' does not follow the required naming convention (e.g., feature/PROJECT-123)."
+            exit 1
+          fi
+
+      - name: Check PR title for JIRA ticket
+        if: github.event.pull_request != null
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if [[ ! "$PR_TITLE" =~ [A-Z]{2,}-[0-9]+ ]]; then
+            echo "PR title does not include a JIRA ticket number."
+            exit 1
+          fi
