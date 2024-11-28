@@ -1,5 +1,5 @@
 // import java.util.Scanner;
-
+// error change github action
 // class Factorial1{
 //     public void fact(int n)
 //     {
