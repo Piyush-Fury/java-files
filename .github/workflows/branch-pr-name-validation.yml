@@ -20,7 +20,7 @@ jobs:
           echo "Branch name: $BRANCH_NAME"
           
           # Exclude main branches from validation
-          if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "develop" || "$BRANCH_NAME" == "master" ]]; then
+          if [[ "$BRANCH_NAME" == "main" ]]; then
             echo "Skipping branch name validation for $BRANCH_NAME."
             exit 0
           fi
@@ -34,8 +34,11 @@ jobs:
       # Check PR title for JIRA ticket
       - name: Check PR title for JIRA ticket
         run: |
-          # Get the PR title
-          PR_TITLE=$(gh pr view --json title -q ".title")
+          # Get the PR number from GitHub context
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+
+          # Get the PR title using GitHub CLI
+          PR_TITLE=$(gh pr view "$PR_NUMBER" --json title -q ".title")
           echo "PR title: $PR_TITLE"
 
           # Validate PR title includes a JIRA ticket ID (e.g., SH-234)
