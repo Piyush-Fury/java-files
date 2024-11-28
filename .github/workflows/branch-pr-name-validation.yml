@@ -15,9 +15,15 @@ jobs:
       # Get branch name and check JIRA ticket in branch name
       - name: Get Branch Name and Check JIRA ticket
         run: |
-          # Get the branch name from the GitHub context
-          BRANCH_NAME="${{ github.head_ref }}"
-          echo "Branch name from context: '$BRANCH_NAME'"
+          # Check if the event is a pull request or a direct push to a branch
+          if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+            echo "Pull request branch name from context: '$BRANCH_NAME'"
+          else
+            BRANCH_NAME="${{ github.ref }}"
+            BRANCH_NAME=$(basename "$BRANCH_NAME")
+            echo "Push event branch name from context: '$BRANCH_NAME'"
+          fi
           
           # Trim leading and trailing spaces from the branch name
           BRANCH_NAME=$(echo "$BRANCH_NAME" | xargs)
