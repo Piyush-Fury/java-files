@@ -12,12 +12,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         
-      # Check branch name for JIRA ticket
+      # Get branch name and check JIRA ticket in branch name
       - name: Get Branch Name and Check JIRA ticket
         run: |
-          # Get the branch name from the PR
+          # Get the branch name from the GitHub context
           BRANCH_NAME="${{ github.head_ref }}"
-          echo "Branch name: '$BRANCH_NAME'"
+          echo "Branch name from context: '$BRANCH_NAME'"
           
           # Trim leading and trailing spaces from the branch name
           BRANCH_NAME=$(echo "$BRANCH_NAME" | xargs)
@@ -35,7 +35,7 @@ jobs:
             exit 1  # Fail the action
           fi
 
-      # Check PR title for JIRA ticket
+      # Get PR title and validate JIRA ticket ID in PR title
       - name: Get PR title and validate ticket ID
         run: |
           # Get the PR number from GitHub context
@@ -43,7 +43,7 @@ jobs:
 
           # Get the PR title using GitHub CLI
           PR_TITLE=$(gh pr view "$PR_NUMBER" --json title -q ".title")
-          echo "PR title: '$PR_TITLE'"
+          echo "PR title from GitHub: '$PR_TITLE'"
 
           # Trim leading and trailing spaces from the PR title
           PR_TITLE=$(echo "$PR_TITLE" | xargs)
