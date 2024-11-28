@@ -12,7 +12,8 @@ jobs:
 
       - name: Get PR details and validate ticket ID
         run: |
-          PR_NUMBER="16"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          echo "PR Number: $PR_NUMBER"
           
           # Get the PR title using GitHub CLI
           PR_TITLE=$(gh pr view "$PR_NUMBER" --json title -q ".title")
