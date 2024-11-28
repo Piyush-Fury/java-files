@@ -28,4 +28,7 @@ jobs:
         run: |
           PR_TITLE=$(gh pr view --json title -q ".title")
           echo "PR title: $PR_TITLE"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
           # Add your naming convention check here
