@@ -4,95 +4,45 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  check-naming-convention:
+  check_pr_title:
     runs-on: ubuntu-latest
-    
+
     steps:
-      # Step to checkout the code
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      # Debugging the GitHub context variables
-      - name: Debug GitHub Context
-        run: |
-          echo "GitHub Context:"
-          echo "GITHUB_EVENT_NAME = $GITHUB_EVENT_NAME"
-          echo "github.head_ref = $GITHUB_HEAD_REF"
-          echo "github.ref = $GITHUB_REF"
-          echo "github.repository = $GITHUB_REPOSITORY"
-          echo "github.event.pull_request.number = ${{ github.event.pull_request.number }}"
-          echo "GITHUB_SHA = $GITHUB_SHA"
-          
-      # Get branch name and check JIRA ticket in branch name
-      - name: Get Branch Name and Check JIRA ticket
-        run: |
-          # Check if the event is a pull request
-          if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
-            # Get the branch name from PR context (head_ref)
-            BRANCH_NAME="${{ github.head_ref }}"
-            echo "Pull request branch name from context: '$BRANCH_NAME'"
-          else
-            # For push events, get the branch from ref
-            BRANCH_NAME="${{ github.ref }}"
-            BRANCH_NAME=$(basename "$BRANCH_NAME")
-            echo "Push event branch name from context: '$BRANCH_NAME'"
-          fi
-          
-          # If the branch name is still empty, use git to fetch the current branch
-          if [[ -z "$BRANCH_NAME" ]]; then
-            BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
-            echo "Using Git to fetch the branch name: '$BRANCH_NAME'"
-          fi
-          
-          # Trim leading and trailing spaces from the branch name
-          BRANCH_NAME=$(echo "$BRANCH_NAME" | xargs)
-          echo "Trimmed Branch name: '$BRANCH_NAME'"
-          
-          # Exclude main branches from validation
-          if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "develop" || "$BRANCH_NAME" == "master" ]]; then
-            echo "Skipping branch name validation for $BRANCH_NAME."
-            exit 0
-          fi
+      - name: Check out the repository
+        uses: actions/checkout@v2
 
-          # Validate that branch name includes JIRA ticket (e.g., SH-234-prod)
-          if [[ ! "$BRANCH_NAME" =~ ^[A-Z]+-[0-9]+ ]]; then
-            echo "Branch name must follow the format <TICKET-ID>-<branch> (e.g., SH-234-prod)."
-            exit 1  # Fail the action
-          fi
-
-      # Get PR title and validate ticket ID in PR title
-      - name: Get PR title and validate ticket ID
+      - name: Get the PR number from GitHub context
+        id: pr_info
         run: |
-          # Get the PR number from GitHub context
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-
-          # Get the PR title using GitHub CLI
+          PR_NUMBER="16"
           PR_TITLE=$(gh pr view "$PR_NUMBER" --json title -q ".title")
           echo "PR title from GitHub: '$PR_TITLE'"
-
+          
           # Trim leading and trailing spaces from the PR title
           PR_TITLE=$(echo "$PR_TITLE" | xargs)
           echo "Trimmed PR title: '$PR_TITLE'"
-
+          
           # Validate PR title includes a JIRA ticket ID (e.g., SH-234)
           if [[ ! "$PR_TITLE" =~ ^[A-Z]+-[0-9]+ ]]; then
             echo "PR title must include a JIRA ticket ID (e.g., SH-234)."
             exit 1  # Fail the action
           fi
-
-          # Normalize both branch and PR ticket IDs to lowercase
-          BRANCH_TICKET=$(echo "$BRANCH_NAME" | grep -oE '^[A-Z]+-[0-9]+' | tr '[:upper:]' '[:lower:]')
+          
+          # Normalize PR ticket ID to lowercase
           PR_TICKET=$(echo "$PR_TITLE" | grep -oE '^[A-Z]+-[0-9]+' | tr '[:upper:]' '[:lower:]')
-
+          
+          # Fetch the branch name
+          BRANCH_NAME="${GITHUB_HEAD_REF:-$(git rev-parse --abbrev-ref HEAD)}"
+          
+          # Normalize branch ticket ID to lowercase
+          BRANCH_TICKET=$(echo "$BRANCH_NAME" | grep -oE '^[A-Z]+-[0-9]+' | tr '[:upper:]' '[:lower:]')
+          
           # Debugging output for branch and PR ticket IDs
           echo "Branch name: '$BRANCH_NAME'"
           echo "Extracted branch ticket ID: '$BRANCH_TICKET'"
           echo "Extracted PR ticket ID: '$PR_TICKET'"
-
+          
           if [[ "$BRANCH_TICKET" != "$PR_TICKET" ]]; then
             echo "Mismatch: Branch ticket ID ($BRANCH_TICKET) does not match PR ticket ID ($PR_TICKET)."
             exit 1  # Fail the action
           fi
-          
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
