@@ -12,6 +12,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         
+      # Debugging the GitHub context variables
+      - name: Debug GitHub Context
+        run: |
+          echo "GitHub Context:"
+          echo "GITHUB_EVENT_NAME = $GITHUB_EVENT_NAME"
+          echo "github.head_ref = $GITHUB_HEAD_REF"
+          echo "github.ref = $GITHUB_REF"
+          echo "github.repository = $GITHUB_REPOSITORY"
+          echo "github.event.pull_request.number = ${{ github.event.pull_request.number }}"
+          echo "GITHUB_SHA = $GITHUB_SHA"
+          
       # Get branch name and check JIRA ticket in branch name
       - name: Get Branch Name and Check JIRA ticket
         run: |
