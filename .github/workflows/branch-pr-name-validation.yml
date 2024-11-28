@@ -20,7 +20,7 @@ jobs:
           echo "Branch name: $BRANCH_NAME"
           
           # Exclude main branches from validation
-          if [[ "$BRANCH_NAME" == "main" ]]; then
+          if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "develop" || "$BRANCH_NAME" == "master" ]]; then
             echo "Skipping branch name validation for $BRANCH_NAME."
             exit 0
           fi
@@ -50,6 +50,10 @@ jobs:
           # Ensure PR title's ticket ID matches the branch name's ticket ID
           BRANCH_TICKET=$(echo "$BRANCH_NAME" | grep -oE '^[A-Z]+-[0-9]+')
           PR_TICKET=$(echo "$PR_TITLE" | grep -oE '^[A-Z]+-[0-9]+')
+
+          # Debugging output for extracted ticket IDs
+          echo "Extracted branch ticket ID: $BRANCH_TICKET"
+          echo "Extracted PR ticket ID: $PR_TICKET"
 
           if [[ "$BRANCH_TICKET" != "$PR_TICKET" ]]; then
             echo "Mismatch: Branch ticket ID ($BRANCH_TICKET) does not match PR ticket ID ($PR_TICKET)."
