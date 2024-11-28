@@ -26,7 +26,7 @@ jobs:
           fi
 
           # Validate that branch name includes JIRA ticket (e.g., SH-234-prod)
-          if [[ ! "$BRANCH_NAME" =~ ^[A-Z]+-[0-9]+-[a-zA-Z0-9]+$ ]]; then
+          if [[ ! "$BRANCH_NAME" =~ ^[A-Z]+-[0-9]+ ]]; then
             echo "Branch name must follow the format <TICKET-ID>-<branch> (e.g., SH-234-prod)."
             exit 1  # Fail the action
           fi
@@ -51,7 +51,8 @@ jobs:
           BRANCH_TICKET=$(echo "$BRANCH_NAME" | grep -oE '^[A-Z]+-[0-9]+')
           PR_TICKET=$(echo "$PR_TITLE" | grep -oE '^[A-Z]+-[0-9]+')
 
-          # Debugging output for extracted ticket IDs
+          # Debugging output for branch and PR ticket IDs
+          echo "Branch name: $BRANCH_NAME"
           echo "Extracted branch ticket ID: $BRANCH_TICKET"
           echo "Extracted PR ticket ID: $PR_TICKET"
 
