@@ -19,7 +19,12 @@ jobs:
         run: |
           BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
           echo "Branch name: $BRANCH_NAME"
-          # Add your naming convention check here
+          
+          # Validate that branch name includes JIRA ticket (e.g., IAMOPS-123)
+          if [[ ! "$BRANCH_NAME" =~ ^[A-Z]+-[0-9]+ ]]; then
+            echo "Branch name must include a JIRA ticket ID (e.g., IAMOPS-123)"
+            exit 1  # Fail the action and prevent the push or PR
+          fi
 
       # Check PR title for JIRA ticket if PR exists
       - name: Check PR title for JIRA ticket
@@ -30,5 +35,11 @@ jobs:
             exit 0  # Success exit code to skip error
           fi
           echo "PR title: $PR_TITLE"
+
+          if [[ ! "$PR_TITLE" =~ ^[A-Z]+-[0-9]+ ]]; then
+            echo "PR title must include a JIRA ticket ID (e.g., IAMOPS-123)"
+            exit 1  # Fail the action and prevent the PR from being merged
+          fi
+          
         env:
           GH_TOKEN: ${{ github.token }}
