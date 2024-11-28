@@ -26,9 +26,11 @@ jobs:
       # Check PR title for JIRA ticket
       - name: Check PR title for JIRA ticket
         run: |
-          PR_TITLE=$(gh pr view --json title -q ".title")
+          PR_TITLE=$(gh pr view --json title -q ".title" || echo "No PR found")
+          if [[ "$PR_TITLE" == "No PR found" ]]; then
+            echo "No open PR found for this branch."
+            exit 1  # or handle as needed
+          fi
           echo "PR title: $PR_TITLE"
         env:
           GH_TOKEN: ${{ github.token }}
-
-          # Add your naming convention check here
