@@ -1,10 +1,8 @@
 name: Validate Branch and PR Naming
 on:
-  push:
-    branches:
-      - '*'
   pull_request:
     types: [opened, synchronize, reopened]
+
 jobs:
   check-naming-convention:
     runs-on: ubuntu-latest
@@ -15,36 +13,45 @@ jobs:
         uses: actions/checkout@v3
         
       # Check branch name for JIRA ticket
-      - name: Check branch name for JIRA ticket
+      - name: Check branch name format
         run: |
-          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+          # Get the branch name from the PR
+          BRANCH_NAME=${{ github.head_ref }}
           echo "Branch name: $BRANCH_NAME"
           
+          # Exclude main branches from validation
           if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "develop" || "$BRANCH_NAME" == "master" ]]; then
-          echo "Skipping branch name validation for $BRANCH_NAME."
-          exit 0
+            echo "Skipping branch name validation for $BRANCH_NAME."
+            exit 0
           fi
 
-          # Validate that branch name includes JIRA ticket (e.g., IAMOPS-123)
-          if [[ ! "$BRANCH_NAME" =~ ^[A-Z]+-[0-9]+ ]]; then
-            echo "Branch name must include a JIRA ticket ID (e.g., IAMOPS-123)"
-            exit 1  # Fail the action and prevent the push or PR
+          # Validate branch name format: <ticket>-<branch>
+          if [[ ! "$BRANCH_NAME" =~ ^[A-Z]+-[0-9]+-[a-zA-Z0-9]+$ ]]; then
+            echo "Branch name must follow the format <ticket>-<branch> (e.g., SH-234-prod)."
+            exit 1  # Fail the action
           fi
 
-      # Check PR title for JIRA ticket if PR exists
-      - name: Check PR title for JIRA ticket
+      # Check PR title for JIRA ticket
+      - name: Check PR title format
         run: |
-          PR_TITLE=$(gh pr view --json title -q ".title" || echo "No PR found")
-          if [[ "$PR_TITLE" == "No PR found" ]]; then
-            echo "No open PR found for this branch, skipping PR title check."
-            exit 0  # Success exit code to skip error
-          fi
+          # Get the PR title
+          PR_TITLE=$(gh pr view --json title -q ".title")
           echo "PR title: $PR_TITLE"
 
+          # Validate PR title includes a JIRA ticket ID (e.g., SH-234)
           if [[ ! "$PR_TITLE" =~ ^[A-Z]+-[0-9]+ ]]; then
-            echo "PR title must include a JIRA ticket ID (e.g., IAMOPS-123)"
-            exit 1  # Fail the action and prevent the PR from being merged
+            echo "PR title must include a JIRA ticket ID (e.g., SH-234)."
+            exit 1  # Fail the action
+          fi
+
+          # Ensure PR title's ticket ID matches the branch name's ticket ID
+          BRANCH_TICKET=$(echo "$BRANCH_NAME" | grep -oE '^[A-Z]+-[0-9]+')
+          PR_TICKET=$(echo "$PR_TITLE" | grep -oE '^[A-Z]+-[0-9]+')
+
+          if [[ "$BRANCH_TICKET" != "$PR_TICKET" ]]; then
+            echo "Mismatch: Branch ticket ID ($BRANCH_TICKET) does not match PR ticket ID ($PR_TICKET)."
+            exit 1  # Fail the action
           fi
           
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
