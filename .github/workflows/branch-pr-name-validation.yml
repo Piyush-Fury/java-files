@@ -1,4 +1,4 @@
-name: Validate Branch and PR Naming
+name: Validate Branch and PR Naming / your-job (pull_request)
 on:
   pull_request:
     types: [opened, synchronize, reopened]
